@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import FinancialSummary from './FinancialSummary';
 import dynamic from 'next/dynamic';
+import BankAccountList from './BankAccountList';
 
 // Use dynamic import for the chart components
 const FundAllocationChart = dynamic(
@@ -63,13 +64,15 @@ const Dashboard = ({ data }: DashboardProps) => {
       <FinancialSummary data={data} />
 
       <div className="mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <FundAllocationChart data={bankData} />
           <ProjectedSavingsChart 
             initialBalance={data.totalBalance}
             annualYieldRate={data.averageYield}
           />
         </div>
+        
+        <BankAccountList />
       </div>
     </div>
   );

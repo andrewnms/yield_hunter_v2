@@ -85,13 +85,13 @@ export default function AddBankAccountModal({
             <select
               value={bank}
               onChange={(e) => setBank(e.target.value)}
-              className={`w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent ${
+              className={`w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent text-black ${
                 errors.bank ? 'border-red-500' : 'border-gray-300'
               }`}
             >
-              <option value="">Select a bank</option>
+              <option value="" className="text-black">Select a bank</option>
               {digitalBanks.map((bankName) => (
-                <option key={bankName} value={bankName}>
+                <option key={bankName} value={bankName} className="text-black">
                   {bankName}
                 </option>
               ))}
@@ -110,7 +110,7 @@ export default function AddBankAccountModal({
               step="0.01"
               value={balance}
               onChange={(e) => setBalance(e.target.value)}
-              className={`w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent ${
+              className={`w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent text-black placeholder:text-gray-500 ${
                 errors.balance ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Enter balance"
@@ -129,7 +129,7 @@ export default function AddBankAccountModal({
               step="0.1"
               value={yieldRate}
               onChange={(e) => setYieldRate(e.target.value)}
-              className={`w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent ${
+              className={`w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:border-transparent text-black placeholder:text-gray-500 ${
                 errors.yieldRate ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Enter yield rate"

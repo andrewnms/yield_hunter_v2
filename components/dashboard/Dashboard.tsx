@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
-import MetricCard from './MetricCard';
-import { formatCurrency, formatPercentage } from '@/lib/formatters';
+import FinancialSummary from './FinancialSummary';
 
 interface DashboardProps {
   data: {
@@ -17,40 +16,11 @@ interface DashboardProps {
 const Dashboard = ({ data }: DashboardProps) => {
   return (
     <div className="p-6">
-      <div className="mb-8 p-4 rounded-lg bg-red-500">
+      <div className="mb-8 p-4 rounded-lg bg-primary">
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Total Balance"
-          value={formatCurrency(data.totalBalance)}
-          trend={{ value: 2.5, isPositive: true }}
-        />
-        
-        <MetricCard
-          title="Projected Balance (40 days)"
-          value={formatCurrency(data.projectedBalance)}
-          trend={{ 
-            value: ((data.projectedBalance - data.totalBalance) / data.totalBalance) * 100,
-            isPositive: data.projectedBalance > data.totalBalance
-          }}
-        />
-        
-        <MetricCard
-          title="Average Yield Rate"
-          value={formatPercentage(data.averageYield)}
-        />
-        
-        <MetricCard
-          title="Highest Yield Bank"
-          value={`${data.highestYield.bank}`}
-          trend={{ 
-            value: data.highestYield.rate,
-            isPositive: true
-          }}
-        />
-      </div>
+      <FinancialSummary data={data} />
 
       <div className="mt-8">
         <Suspense fallback={<div className="text-center text-black">Loading charts...</div>}>

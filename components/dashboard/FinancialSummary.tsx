@@ -51,8 +51,8 @@ const FinancialSummary = ({ data, loading = false }: FinancialSummaryProps) => {
         value={formatPercentage(data.averageYield)}
         description="Weighted average across all accounts"
         trend={{
-          value: data.averageYield,
-          isPositive: true
+          value: Number(data.averageYield.toFixed(2)),
+          isPositive: data.averageYield > 0,
         }}
         loading={loading}
       />
@@ -62,7 +62,7 @@ const FinancialSummary = ({ data, loading = false }: FinancialSummaryProps) => {
         value={data.highestYield.bank}
         description={`Current best rate: ${formatPercentage(data.highestYield.rate)}`}
         trend={{
-          value: data.highestYield.rate,
+          value: Number(data.highestYield.rate.toFixed(2)),
           isPositive: true
         }}
         loading={loading}

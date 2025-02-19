@@ -1,24 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BankAccount, useBankAccountStore } from '@/store/bankAccountStore';
 import EditBankAccountModal from './EditBankAccountModal';
 
 export default function BankAccountList() {
-  const { accounts, updateAccount, deleteAccount } = useBankAccountStore();
+  const { accounts, fetchAccounts, updateAccount, deleteAccount, isLoading, error } = useBankAccountStore();
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
 
   const handleEdit = (account: BankAccount) => {
     setSelectedAccount(account);
     setIsEditModalOpen(true);
   };
 
+  const handleSave = async (updates: Partial<BankAccount>) => {
+    if (!selectedAccount) return;
+    await updateAccount(selectedAccount.id, updates);
+    setIsEditModalOpen(false);
+    setSelectedAccount(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteAccount(id);
+    setIsEditModalOpen(false);
+    setSelectedAccount(null);
+  };
+
+  const handleClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedAccount(null);
+  };
+
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PH', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PHP',
+      currency: 'USD',
     }).format(amount);
   };
 
@@ -37,6 +59,30 @@ export default function BankAccountList() {
     show: { opacity: 1, y: 0 }
   };
 
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-xl font-semibold mb-4 text-black">Linked Bank Accounts</h2>
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={`skeleton-${i}`} className="h-24 bg-gray-50 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-xl font-semibold mb-4 text-black">Linked Bank Accounts</h2>
+        <div className="p-4 bg-red-50 text-red-600 rounded-lg">
+          Error loading accounts: {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-4 text-black">Linked Bank Accounts</h2>
@@ -50,7 +96,7 @@ export default function BankAccountList() {
         <AnimatePresence mode="popLayout">
           {accounts.map((account) => (
             <motion.div
-              key={account.id}
+              key={account._id}
               variants={itemVariants}
               initial="hidden"
               animate="show"
@@ -65,12 +111,13 @@ export default function BankAccountList() {
                     Balance: {formatCurrency(account.balance)}
                   </p>
                   <p className="text-black">
-                    Yield Rate: {account.yieldRate.toFixed(1)}%
+                    Yield Rate: {(account.yieldRate ?? 0).toFixed(1)}%
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
                 <motion.button
+                  key={`edit-${account._id}`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleEdit(account)}
@@ -79,12 +126,14 @@ export default function BankAccountList() {
                   Edit
                 </motion.button>
                 <button
+                  key={`transfer-${account._id}`}
                   onClick={() => {}} // Transfer functionality to be implemented
                   className="px-3 py-1.5 text-sm font-medium text-black bg-blue-50 rounded hover:bg-blue-100"
                 >
                   Transfer
                 </button>
                 <button
+                  key={`open-${account._id}`}
                   onClick={() => {}} // Open bank functionality to be implemented
                   className="px-3 py-1.5 text-sm font-medium text-black bg-gray-100 rounded hover:bg-gray-200"
                 >
@@ -99,16 +148,9 @@ export default function BankAccountList() {
       <EditBankAccountModal
         account={selectedAccount}
         isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedAccount(null);
-        }}
-        onSave={(updates) => {
-          if (selectedAccount) {
-            updateAccount(selectedAccount.id, updates);
-          }
-        }}
-        onDelete={deleteAccount}
+        onClose={handleClose}
+        onSave={handleSave}
+        onDelete={handleDelete}
       />
     </div>
   );

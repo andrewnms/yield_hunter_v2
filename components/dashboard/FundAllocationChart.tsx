@@ -14,7 +14,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function FundAllocationChart() {
-  const bankAccounts = useBankAccountStore((state) => state.bankAccounts) || [];
+  const bankAccounts = useBankAccountStore((state) => state.accounts) || [];
 
   // Memoize the chart data to prevent unnecessary recalculations
   const { chartData, totalBalance } = useMemo(() => {

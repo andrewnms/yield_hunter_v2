@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import FinancialSummary from './FinancialSummary';
 import dynamic from 'next/dynamic';
 import BankAccountList from './BankAccountList';
+import AddBankAccountModal from './AddBankAccountModal';
 
 // Use dynamic import for the chart components
 const FundAllocationChart = dynamic(
@@ -55,8 +56,10 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ data }: DashboardProps) => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   return (
-    <div className="p-6">
+    <div className="p-6 relative min-h-screen">
       <div className="mb-8 p-4 rounded-lg bg-primary">
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
       </div>
@@ -74,6 +77,32 @@ const Dashboard = ({ data }: DashboardProps) => {
         
         <BankAccountList />
       </div>
+
+      {/* Floating Add Account Button */}
+      <button
+        onClick={() => setIsAddModalOpen(true)}
+        className="fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
+        </svg>
+      </button>
+
+      <AddBankAccountModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </div>
   );
 };

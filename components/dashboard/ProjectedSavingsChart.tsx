@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -9,134 +9,111 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
-import { formatCurrency } from '@/lib/formatters';
-
-interface ProjectionData {
-  day: number;
-  balance: number;
-}
 
 interface ProjectedSavingsChartProps {
   initialBalance: number;
   annualYieldRate: number;
-  loading?: boolean;
 }
 
-const PERIOD_OPTIONS = [
-  { label: '30 Days', value: 30 },
-  { label: '60 Days', value: 60 },
-  { label: '90 Days', value: 90 },
-];
-
-const ProjectedSavingsChart = ({
+export default function ProjectedSavingsChart({
   initialBalance,
   annualYieldRate,
-  loading = false,
-}: ProjectedSavingsChartProps) => {
-  const [selectedPeriod, setSelectedPeriod] = useState(30);
+}: ProjectedSavingsChartProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState(90);
+  const periods = [30, 60, 90];
 
-  const projectionData = useMemo(() => {
+  const data = useMemo(() => {
     const dailyRate = annualYieldRate / 365 / 100;
-    const data: ProjectionData[] = [];
-
-    for (let day = 0; day <= selectedPeriod; day += 5) {
-      const balance = initialBalance * Math.pow(1 + dailyRate, day);
-      data.push({
-        day,
-        balance: Math.round(balance * 100) / 100,
-      });
-    }
-
-    // Always include the final day if it's not already included
-    if (data[data.length - 1].day !== selectedPeriod) {
-      const finalBalance = initialBalance * Math.pow(1 + dailyRate, selectedPeriod);
-      data.push({
-        day: selectedPeriod,
-        balance: Math.round(finalBalance * 100) / 100,
-      });
-    }
-
-    return data;
+    return Array.from({ length: selectedPeriod + 1 }, (_, day) => ({
+      day,
+      balance: initialBalance * Math.pow(1 + dailyRate, day),
+    }));
   }, [initialBalance, annualYieldRate, selectedPeriod]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-4 shadow-lg rounded-lg border border-gray-100">
-          <p className="font-medium text-black">Day {label}</p>
-          <p className="text-sm text-gray-600">
-            Balance: {formatCurrency(payload[0].value)}
-          </p>
-          <p className="text-sm text-primary">
-            Growth: {((payload[0].value / initialBalance - 1) * 100).toFixed(2)}%
-          </p>
-        </div>
-      );
-    }
-    return null;
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      maximumFractionDigits: 2,
+    }).format(value);
   };
 
-  if (loading) {
-    return (
-      <div className="animate-pulse bg-white rounded-xl shadow-lg p-6 min-h-[400px]">
-        <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
-        <div className="h-[300px] bg-gray-100 rounded"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 min-h-[400px]">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-black font-medium">Projected Balance Growth</h3>
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold text-black">
+          Projected Balance Growth
+        </h3>
         <div className="flex gap-2">
-          {PERIOD_OPTIONS.map((option) => (
+          {periods.map((period) => (
             <button
-              key={option.value}
-              onClick={() => setSelectedPeriod(option.value)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                selectedPeriod === option.value
+              key={period}
+              onClick={() => setSelectedPeriod(period)}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                selectedPeriod === period
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 text-black hover:bg-gray-200'
               }`}
             >
-              {option.label}
+              {period} Days
             </button>
           ))}
         </div>
       </div>
       
-      <ResponsiveContainer width="100%" height={350}>
-        <LineChart
-          data={projectionData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis
-            dataKey="day"
-            label={{ value: 'Days', position: 'insideBottom', offset: -5 }}
-          />
-          <YAxis
-            tickFormatter={(value) => formatCurrency(value)}
-            width={80}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="balance"
-            stroke="#EE2B47"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 6 }}
-            name="Projected Balance"
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="h-[400px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="day"
+              tickCount={6}
+              tick={{ fontSize: 12 }}
+              tickFormatter={(value) => `${value}`}
+              label={{
+                value: 'Days',
+                position: 'insideBottom',
+                offset: -15,
+                fontSize: 12,
+              }}
+            />
+            <YAxis
+              tickFormatter={(value) => formatCurrency(value)}
+              tick={{ fontSize: 12 }}
+              width={90}
+              label={{
+                value: 'Balance',
+                angle: -90,
+                position: 'insideLeft',
+                offset: 0,
+                fontSize: 12,
+              }}
+            />
+            <Tooltip
+              formatter={(value: number) => [formatCurrency(value), 'Projected Balance']}
+              labelFormatter={(value) => `Day ${value}`}
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.375rem',
+                padding: '0.5rem',
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="balance"
+              stroke="#EE2B47"
+              strokeWidth={2}
+              dot={false}
+              name="Projected Balance"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
-};
-
-export default ProjectedSavingsChart;
+}

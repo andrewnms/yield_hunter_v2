@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import FinancialSummary from './FinancialSummary';
 import dynamic from 'next/dynamic';
 
-// Use dynamic import for the chart component
+// Use dynamic import for the chart components
 const FundAllocationChart = dynamic(
   () => import('./FundAllocationChart'),
   {
@@ -15,6 +15,19 @@ const FundAllocationChart = dynamic(
         <div className="flex justify-center items-center h-[300px]">
           <div className="w-48 h-48 rounded-full bg-gray-200"></div>
         </div>
+      </div>
+    ),
+  }
+);
+
+const ProjectedSavingsChart = dynamic(
+  () => import('./ProjectedSavingsChart'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse bg-white rounded-xl shadow-lg p-6 min-h-[400px]">
+        <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
+        <div className="h-[300px] bg-gray-100 rounded"></div>
       </div>
     ),
   }
@@ -52,10 +65,10 @@ const Dashboard = ({ data }: DashboardProps) => {
       <div className="mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <FundAllocationChart data={bankData} />
-          <div className="bg-white rounded-xl shadow-lg p-6 min-h-[400px]">
-            <h3 className="text-black font-medium mb-4">Yield Rate Trends</h3>
-            {/* Yield rate chart will go here */}
-          </div>
+          <ProjectedSavingsChart 
+            initialBalance={data.totalBalance}
+            annualYieldRate={data.averageYield}
+          />
         </div>
       </div>
     </div>

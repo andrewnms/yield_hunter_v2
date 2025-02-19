@@ -1,8 +1,21 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Inter, Montserrat, Orbitron } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  variable: '--font-montserrat',
+})
+
+const orbitron = Orbitron({
+  subsets: ['latin'],
+  variable: '--font-orbitron',
+})
 
 export const metadata = {
   title: 'Yield Hunter',
@@ -16,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${montserrat.variable} ${orbitron.variable} font-sans`}>
         <AuthProvider>
           {children}
         </AuthProvider>

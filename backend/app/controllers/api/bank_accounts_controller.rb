@@ -1,12 +1,17 @@
 module Api
   class BankAccountsController < ApplicationController
-    before_action :authenticate_request!
+    include JwtAuthentication
     before_action :set_bank_account, only: [:show, :update, :destroy, :projection]
 
     # GET /api/bank_accounts
     def index
+      Rails.logger.info "[BankAccounts] Loading accounts for user: #{current_user.email}"
       @bank_accounts = current_user.bank_accounts
       render json: @bank_accounts
+    rescue => e
+      Rails.logger.error "[BankAccounts] Error loading accounts: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render json: { error: 'Error loading bank accounts' }, status: :internal_server_error
     end
 
     # GET /api/bank_accounts/:id

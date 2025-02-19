@@ -11,7 +11,7 @@ class BankAccount
   belongs_to :user
 
   # Validations
-  validates :name, presence: true, uniqueness: true
+  validates :name, presence: true, uniqueness: { scope: :user_id }
   validates :balance, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :yield_rate, presence: true, numericality: { 
     greater_than_or_equal_to: 0,

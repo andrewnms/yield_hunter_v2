@@ -59,6 +59,13 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
   addAccount: async (account) => {
     set({ isLoading: true, error: null });
     try {
+      // Convert camelCase to snake_case for the backend
+      const backendAccount = {
+        name: account.name,
+        balance: account.balance,
+        yield_rate: account.yieldRate
+      };
+
       const response = await fetch(`${API_BASE_URL}/bank_accounts`, {
         method: 'POST',
         credentials: 'include',
@@ -66,7 +73,7 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(account),
+        body: JSON.stringify(backendAccount),
       });
 
       if (!response.ok) {
@@ -113,25 +120,22 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const updatedAccount = await response.json();
-      const { accounts } = get();
-      
-      // Map the snake_case from backend to camelCase for frontend
-      const mappedAccount = {
-        id: updatedAccount._id,
-        _id: updatedAccount._id,
-        name: updatedAccount.name,
-        balance: updatedAccount.balance,
-        yieldRate: updatedAccount.yield_rate
+      const data = await response.json();
+      const updatedAccount = {
+        id: data._id,
+        _id: data._id,
+        name: data.name,
+        balance: data.balance,
+        yieldRate: data.yield_rate
       };
-      
+
+      const { accounts } = get();
       set({
-        accounts: accounts.map(acc => acc._id === id ? mappedAccount : acc),
+        accounts: accounts.map((acc) => (acc.id === id ? updatedAccount : acc)),
         isLoading: false,
       });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to update account', isLoading: false });
-      throw error; // Re-throw to handle in the component
     }
   },
 
@@ -151,7 +155,10 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       }
 
       const { accounts } = get();
-      set({ accounts: accounts.filter(acc => acc._id !== id), isLoading: false });
+      set({
+        accounts: accounts.filter((acc) => acc.id !== id),
+        isLoading: false,
+      });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to delete account', isLoading: false });
     }

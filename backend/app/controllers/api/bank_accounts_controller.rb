@@ -1,10 +1,11 @@
 module Api
   class BankAccountsController < ApplicationController
+    before_action :authenticate_request!
     before_action :set_bank_account, only: [:show, :update, :destroy, :projection]
 
     # GET /api/bank_accounts
     def index
-      @bank_accounts = BankAccount.all
+      @bank_accounts = current_user.bank_accounts
       render json: @bank_accounts
     end
 
@@ -15,12 +16,12 @@ module Api
 
     # POST /api/bank_accounts
     def create
-      @bank_account = BankAccount.new(bank_account_params)
+      @bank_account = current_user.bank_accounts.build(bank_account_params)
 
       if @bank_account.save
         render json: @bank_account, status: :created
       else
-        render json: { errors: @bank_account.errors.full_messages }, status: :unprocessable_entity
+        render json: @bank_account.errors, status: :unprocessable_entity
       end
     end
 
@@ -29,7 +30,7 @@ module Api
       if @bank_account.update(bank_account_params)
         render json: @bank_account
       else
-        render json: { errors: @bank_account.errors.full_messages }, status: :unprocessable_entity
+        render json: @bank_account.errors, status: :unprocessable_entity
       end
     end
 
@@ -55,7 +56,7 @@ module Api
     private
 
     def set_bank_account
-      @bank_account = BankAccount.find(params[:id])
+      @bank_account = current_user.bank_accounts.find(params[:id])
     rescue Mongoid::Errors::DocumentNotFound
       render json: { error: 'Bank account not found' }, status: :not_found
     end

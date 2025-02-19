@@ -7,9 +7,16 @@ Rails.application.routes.draw do
 
   namespace :api do
     get 'status', to: 'status#index'
+    # Authentication routes
+    post 'auth/register', to: 'auth#register'
+    post 'auth/login', to: 'auth#login'
+    delete 'auth/logout', to: 'auth#logout'
+    get 'auth/check', to: 'auth#check'
+
+    # Bank accounts routes
     resources :bank_accounts do
       member do
-        get 'projection'
+        get 'projection', to: 'bank_accounts#projection'
       end
     end
   end

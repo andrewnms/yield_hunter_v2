@@ -41,24 +41,30 @@ export default function AddBankAccountModal({ isOpen, onClose }: Props) {
   const { addAccount, isLoading, error } = useBankAccountStore();
   const [selectedBank, setSelectedBank] = useState(BANK_OPTIONS[0]);
   const [balance, setBalance] = useState('');
-  const [yieldRate, setYieldRate] = useState('');
+  const [yieldRate, setYieldRate] = useState('4.50');
   const [submitError, setSubmitError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError('');
 
+    const parsedYieldRate = parseFloat(yieldRate);
+    if (parsedYieldRate <= 0) {
+      setSubmitError('Yield rate must be greater than 0%');
+      return;
+    }
+
     try {
       await addAccount({
         name: selectedBank.name,
         balance: parseFloat(balance),
-        yieldRate: parseFloat(yieldRate)
+        yieldRate: parsedYieldRate
       });
       
       // Reset form and close modal on success
       setSelectedBank(BANK_OPTIONS[0]);
       setBalance('');
-      setYieldRate('');
+      setYieldRate('4.50');
       onClose();
     } catch (error) {
       setSubmitError((error as Error).message);
@@ -202,9 +208,9 @@ export default function AddBankAccountModal({ isOpen, onClose }: Props) {
                       id="yieldRate"
                       value={yieldRate}
                       onChange={(e) => setYieldRate(e.target.value)}
-                      step="0.1"
-                      min="0"
-                      max="100"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="Enter yield rate"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black text-base py-3 px-4"
                       required
                     />

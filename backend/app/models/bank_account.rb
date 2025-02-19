@@ -7,6 +7,9 @@ class BankAccount
   field :balance, type: Float, default: 0.0
   field :yield_rate, type: Float, default: 0.0
 
+  # Relations
+  belongs_to :user
+
   # Validations
   validates :name, presence: true, uniqueness: true
   validates :balance, presence: true, numericality: { greater_than_or_equal_to: 0 }
@@ -14,6 +17,7 @@ class BankAccount
     greater_than_or_equal_to: 0,
     less_than_or_equal_to: 100 # Maximum 100% yield rate
   }
+  validates :user, presence: true
 
   # Callbacks
   before_validation :set_defaults

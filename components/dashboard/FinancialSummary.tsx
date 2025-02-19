@@ -1,3 +1,5 @@
+'use client';
+
 import { useMemo } from 'react';
 import FinancialSummaryCard from './FinancialSummaryCard';
 import { formatCurrency, formatPercentage } from '@/lib/formatters';

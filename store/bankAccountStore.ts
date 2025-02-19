@@ -5,7 +5,7 @@ export interface BankAccount {
   _id: string;
   name: string;
   balance: number;
-  yieldRate: number;
+  yieldRate: number | null;
 }
 
 interface BankAccountStore {
@@ -46,8 +46,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
         id: account._id,
         _id: account._id,
         name: account.name,
-        balance: account.balance,
-        yieldRate: account.yield_rate
+        balance: Number(account.balance) || 0,
+        yieldRate: account.yield_rate !== null ? Number(account.yield_rate) : null
       }));
       
       set({ accounts, isLoading: false });
@@ -86,8 +86,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
         id: data._id,
         _id: data._id,
         name: data.name,
-        balance: data.balance,
-        yieldRate: data.yield_rate
+        balance: Number(data.balance) || 0,
+        yieldRate: data.yield_rate !== null ? Number(data.yield_rate) : null
       };
       
       const { accounts } = get();
@@ -102,8 +102,9 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
     try {
       // Convert camelCase to snake_case for the backend
       const backendUpdates = {
-        balance: updates.balance,
-        yield_rate: updates.yieldRate
+        ...(updates.name && { name: updates.name }),
+        ...(updates.balance !== undefined && { balance: updates.balance }),
+        ...(updates.yieldRate !== undefined && { yield_rate: updates.yieldRate })
       };
 
       const response = await fetch(`${API_BASE_URL}/bank_accounts/${id}`, {
@@ -121,18 +122,21 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       }
 
       const data = await response.json();
+      // Map the snake_case from backend to camelCase for frontend
       const updatedAccount = {
         id: data._id,
         _id: data._id,
         name: data.name,
-        balance: data.balance,
-        yieldRate: data.yield_rate
+        balance: Number(data.balance) || 0,
+        yieldRate: data.yield_rate !== null ? Number(data.yield_rate) : null
       };
 
       const { accounts } = get();
       set({
-        accounts: accounts.map((acc) => (acc.id === id ? updatedAccount : acc)),
-        isLoading: false,
+        accounts: accounts.map(account => 
+          account.id === id ? updatedAccount : account
+        ),
+        isLoading: false
       });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to update account', isLoading: false });
@@ -156,11 +160,11 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
 
       const { accounts } = get();
       set({
-        accounts: accounts.filter((acc) => acc.id !== id),
-        isLoading: false,
+        accounts: accounts.filter(account => account.id !== id),
+        isLoading: false
       });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to delete account', isLoading: false });
     }
-  }
+  },
 }));

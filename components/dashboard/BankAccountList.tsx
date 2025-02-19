@@ -44,6 +44,11 @@ export default function BankAccountList() {
     }).format(amount);
   };
 
+  const formatYieldRate = (rate: number | undefined | null) => {
+    if (typeof rate !== 'number') return '0.0%';
+    return `${rate.toFixed(1)}%`;
+  };
+
   const listVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -111,7 +116,7 @@ export default function BankAccountList() {
                     Balance: {formatCurrency(account.balance)}
                   </p>
                   <p className="text-black">
-                    Yield Rate: {(account.yieldRate ?? 0).toFixed(1)}%
+                    Yield Rate: {formatYieldRate(account.yieldRate)}
                   </p>
                 </div>
               </div>

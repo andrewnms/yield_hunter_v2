@@ -39,6 +39,6 @@ class User
   end
 
   def jwt_secret_key
-    Rails.application.credentials.jwt_secret_key || Rails.application.secrets.secret_key_base
+    Rails.application.credentials.secret_key_base
   end
 end

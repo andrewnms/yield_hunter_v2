@@ -1,28 +1,26 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import './globals.css'
+import { Inter } from 'next/font/google'
+import { AuthProvider } from '@/contexts/AuthContext'
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-});
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: "Yield Hunter - Track Your Savings",
-  description: "Track and optimize your savings with real-time yield projections",
-};
+export const metadata = {
+  title: 'Yield Hunter',
+  description: 'Track and optimize your financial yields',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body className="bg-gray-50">
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="en">
+      <body className={inter.className}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
-  );
+  )
 }

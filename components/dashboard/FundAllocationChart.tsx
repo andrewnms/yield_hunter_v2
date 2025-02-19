@@ -1,54 +1,52 @@
 'use client';
 
-import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { formatCurrency } from '@/lib/formatters';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { useBankAccountStore } from '@/store/bankAccountStore';
 
-interface BankData {
-  name: string;
-  balance: number;
-}
+const COLORS = [
+  '#EE2B47', // Primary color
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEEAD',
+  '#D4A5A5',
+  '#9FA8DA',
+  '#FFE0B2',
+  '#A5D6A7',
+];
 
-interface FundAllocationChartProps {
-  data: BankData[];
-  loading?: boolean;
-}
+export default function FundAllocationChart() {
+  const { accounts } = useBankAccountStore();
+  
+  const data = accounts.map((account, index) => ({
+    name: account.name,
+    value: account.balance,
+    color: COLORS[index % COLORS.length],
+  }));
 
-// Predefined colors for the pie chart segments
-const COLORS = ['#EE2B47', '#FF9F1C', '#2EC4B6', '#5C4B77', '#8D6A9F'];
+  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
 
-const FundAllocationChart = ({ data, loading = false }: FundAllocationChartProps) => {
-  const chartData = useMemo(() => {
-    const total = data.reduce((sum, item) => sum + item.balance, 0);
-    return data.map(item => ({
-      name: item.name,
-      value: item.balance,
-      percentage: ((item.balance / total) * 100).toFixed(1)
-    }));
-  }, [data]);
-
-  if (loading) {
-    return (
-      <div className="animate-pulse bg-white rounded-xl shadow-lg p-6 min-h-[400px]">
-        <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
-        <div className="flex justify-center items-center h-[300px]">
-          <div className="w-48 h-48 rounded-full bg-gray-200"></div>
-        </div>
-      </div>
-    );
-  }
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const percentage = ((data.value / totalBalance) * 100).toFixed(1);
       return (
-        <div className="bg-white p-4 shadow-lg rounded-lg border border-gray-100">
+        <div className="bg-white p-3 shadow-lg rounded-lg border border-gray-100">
           <p className="font-medium text-black">{data.name}</p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-black">
             Balance: {formatCurrency(data.value)}
           </p>
-          <p className="text-sm text-gray-600">
-            Allocation: {data.percentage}%
+          <p className="text-sm text-primary">
+            {percentage}% of total
           </p>
         </div>
       );
@@ -57,41 +55,28 @@ const FundAllocationChart = ({ data, loading = false }: FundAllocationChartProps
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 min-h-[400px]">
-      <h3 className="text-black font-medium mb-4">Fund Distribution</h3>
-      <ResponsiveContainer width="100%" height={350}>
-        <PieChart>
-          <Pie
-            data={chartData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            outerRadius={120}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {chartData.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            layout="vertical" 
-            align="right"
-            verticalAlign="middle"
-            formatter={(value, entry: any) => (
-              <span className="text-sm text-black">
-                {value} ({entry.payload.percentage}%)
-              </span>
-            )}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <h3 className="text-lg font-semibold mb-4 text-black">Fund Allocation</h3>
+      <div className="h-[400px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={80}
+              outerRadius={140}
+              paddingAngle={2}
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell key={index} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
-};
-
-export default FundAllocationChart;
+}

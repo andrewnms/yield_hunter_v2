@@ -35,14 +35,6 @@ const ProjectedSavingsChart = dynamic(
   }
 );
 
-// Dummy bank data for the pie chart
-const bankData = [
-  { name: "Maya Bank", balance: 50000 },
-  { name: "UnionDigital", balance: 30000 },
-  { name: "GCash (CIMB)", balance: 70000 },
-  { name: "Tonik Bank", balance: 45000 },
-];
-
 interface DashboardProps {
   data: {
     totalBalance: number;
@@ -68,7 +60,7 @@ const Dashboard = ({ data }: DashboardProps) => {
 
       <div className="mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <FundAllocationChart data={bankData} />
+          <FundAllocationChart />
           <ProjectedSavingsChart 
             initialBalance={data.totalBalance}
             annualYieldRate={data.averageYield}

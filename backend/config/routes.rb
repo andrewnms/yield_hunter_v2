@@ -20,10 +20,16 @@ Rails.application.routes.draw do
       end
     end
 
+    # Yield rates routes
     resources :yield_rates, only: [:index]
 
+    # Promos routes - public access
+    resources :promos, only: [:index]
+
     namespace :admin do
+      # Admin-only routes
       resources :yield_rates, only: [:index, :create]
+      resources :promos
     end
   end
 

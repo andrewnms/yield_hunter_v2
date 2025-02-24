@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import YieldRateManager from '@/components/admin/YieldRateManager';
+import PromoManagement from '@/components/admin/PromoManagement';
 
 /**
  * Navigation bar component for the admin dashboard
@@ -62,19 +63,24 @@ function LoadingSpinner() {
   );
 }
 
+type AdminTab = 'yield-rates' | 'promos';
+
 /**
- * Admin page component that provides an interface for managing yield rates
- * Only accessible to users with admin privileges (apagu.hxi@gmail.com)
+ * Admin page component that provides an interface for managing yield rates and promos
+ * Only accessible to users with admin privileges
  * 
  * Features:
  * - Protected route (redirects non-admin users)
  * - Yield rate management interface
+ * - Promo management interface
+ * - Tab navigation between different admin features
  * - Navigation to main dashboard
  * - Secure logout functionality
  */
 export default function AdminPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<AdminTab>('yield-rates');
 
   // Redirect non-admin users to home page
   useEffect(() => {
@@ -121,7 +127,41 @@ export default function AdminPage() {
       />
       
       <main className="py-10">
-        <YieldRateManager />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200 mb-6">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('yield-rates')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'yield-rates'
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                `}
+              >
+                Yield Rates
+              </button>
+              <button
+                onClick={() => setActiveTab('promos')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'promos'
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                `}
+              >
+                Promotions
+              </button>
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          <div className="mt-6">
+            {activeTab === 'yield-rates' && <YieldRateManager />}
+            {activeTab === 'promos' && <PromoManagement />}
+          </div>
+        </div>
       </main>
     </div>
   );

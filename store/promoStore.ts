@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from '@/lib/axios';
+import type { AxiosError } from 'axios';
 
 export interface Promo {
   id: string;
@@ -15,15 +16,29 @@ export interface Promo {
   updatedAt: string;
 }
 
+type CreatePromoInput = Omit<Promo, 'id' | 'createdAt' | 'updatedAt'>;
+type UpdatePromoInput = Partial<Omit<Promo, 'id' | 'createdAt' | 'updatedAt'>>;
+
 interface PromoStore {
   promos: Promo[];
   loading: boolean;
   error: string | null;
   fetchPromos: () => Promise<void>;
-  createPromo: (promo: Partial<Promo>) => Promise<void>;
-  updatePromo: (id: string, promo: Partial<Promo>) => Promise<void>;
+  createPromo: (promo: CreatePromoInput) => Promise<void>;
+  updatePromo: (id: string, promo: UpdatePromoInput) => Promise<void>;
   deletePromo: (id: string) => Promise<void>;
 }
+
+const handleApiError = (error: unknown): string => {
+  if (error instanceof Error) {
+    if ((error as AxiosError).isAxiosError) {
+      const axiosError = error as AxiosError<{ error?: string }>;
+      return axiosError.response?.data?.error || axiosError.message;
+    }
+    return error.message;
+  }
+  return 'An unexpected error occurred';
+};
 
 export const usePromoStore = create<PromoStore>((set) => ({
   promos: [],
@@ -33,10 +48,12 @@ export const usePromoStore = create<PromoStore>((set) => ({
   fetchPromos: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get('/api/promos');
+      const response = await axios.get<Promo[]>('/api/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
-      set({ error: 'Failed to fetch promos', loading: false });
+      const errorMessage = handleApiError(error);
+      set({ error: errorMessage, loading: false });
+      throw new Error(errorMessage);
     }
   },
 
@@ -44,10 +61,12 @@ export const usePromoStore = create<PromoStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await axios.post('/api/admin/promos', { promo });
-      const response = await axios.get('/api/promos');
+      const response = await axios.get<Promo[]>('/api/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
-      set({ error: 'Failed to create promo', loading: false });
+      const errorMessage = handleApiError(error);
+      set({ error: errorMessage, loading: false });
+      throw new Error(errorMessage);
     }
   },
 
@@ -55,10 +74,12 @@ export const usePromoStore = create<PromoStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await axios.put(`/api/admin/promos/${id}`, { promo });
-      const response = await axios.get('/api/promos');
+      const response = await axios.get<Promo[]>('/api/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
-      set({ error: 'Failed to update promo', loading: false });
+      const errorMessage = handleApiError(error);
+      set({ error: errorMessage, loading: false });
+      throw new Error(errorMessage);
     }
   },
 
@@ -66,10 +87,12 @@ export const usePromoStore = create<PromoStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await axios.delete(`/api/admin/promos/${id}`);
-      const response = await axios.get('/api/promos');
+      const response = await axios.get<Promo[]>('/api/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
-      set({ error: 'Failed to delete promo', loading: false });
+      const errorMessage = handleApiError(error);
+      set({ error: errorMessage, loading: false });
+      throw new Error(errorMessage);
     }
   },
 }));

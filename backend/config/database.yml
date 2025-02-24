@@ -1,0 +1,21 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: yield_hunter
+  password: your_password
+  host: localhost
+
+development:
+  <<: *default
+  database: yield_hunter_development
+
+test:
+  <<: *default
+  database: yield_hunter_test
+
+production:
+  <<: *default
+  database: yield_hunter_production
+  username: <%= ENV['YIELD_HUNTER_DATABASE_USERNAME'] %>
+  password: <%= ENV['YIELD_HUNTER_DATABASE_PASSWORD'] %>

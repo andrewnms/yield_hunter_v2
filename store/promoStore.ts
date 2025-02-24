@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import axios from '@/lib/axios';
-import type { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 export interface Promo {
   id: string;
@@ -31,9 +30,8 @@ interface PromoStore {
 
 const handleApiError = (error: unknown): string => {
   if (error instanceof Error) {
-    if ((error as AxiosError).isAxiosError) {
-      const axiosError = error as AxiosError<{ error?: string }>;
-      return axiosError.response?.data?.error || axiosError.message;
+    if (error instanceof AxiosError) {
+      return error.response?.data?.error || error.message;
     }
     return error.message;
   }
@@ -48,7 +46,7 @@ export const usePromoStore = create<PromoStore>((set) => ({
   fetchPromos: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get<Promo[]>('/api/promos');
+      const response = await axios.get<Promo[]>('/api/admin/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -61,7 +59,7 @@ export const usePromoStore = create<PromoStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await axios.post('/api/admin/promos', { promo });
-      const response = await axios.get<Promo[]>('/api/promos');
+      const response = await axios.get<Promo[]>('/api/admin/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -74,7 +72,7 @@ export const usePromoStore = create<PromoStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await axios.put(`/api/admin/promos/${id}`, { promo });
-      const response = await axios.get<Promo[]>('/api/promos');
+      const response = await axios.get<Promo[]>('/api/admin/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -87,7 +85,7 @@ export const usePromoStore = create<PromoStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await axios.delete(`/api/admin/promos/${id}`);
-      const response = await axios.get<Promo[]>('/api/promos');
+      const response = await axios.get<Promo[]>('/api/admin/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
       const errorMessage = handleApiError(error);

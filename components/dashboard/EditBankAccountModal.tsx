@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BankAccount } from '@/store/bankAccountStore';
 
+interface YieldRate {
+  bankName: string;
+  accountType: string;
+  rate: number;
+}
+
 interface Props {
   account: BankAccount | null;
   isOpen: boolean;
@@ -20,7 +26,9 @@ export default function EditBankAccountModal({
   onDelete,
 }: Props) {
   const [balance, setBalance] = useState('');
-  const [yieldRate, setYieldRate] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [accountType, setAccountType] = useState('');
+  const [availableRates, setAvailableRates] = useState<YieldRate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -28,9 +36,14 @@ export default function EditBankAccountModal({
   useEffect(() => {
     if (account) {
       setBalance(account.balance.toString());
-      setYieldRate(account.yieldRate.toString());
+      setBankName(account.bankName || '');
+      setAccountType(account.accountType || '');
     }
   }, [account]);
+
+  useEffect(() => {
+    fetchAvailableRates();
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -43,6 +56,18 @@ export default function EditBankAccountModal({
     }
   }, [isOpen]);
 
+  const fetchAvailableRates = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/yield-rates');
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableRates(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch yield rates:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -51,7 +76,8 @@ export default function EditBankAccountModal({
     try {
       await onSave({
         balance: parseFloat(balance),
-        yieldRate: parseFloat(yieldRate),
+        bankName,
+        accountType,
       });
     } catch (err) {
       setError((err as Error).message);
@@ -79,6 +105,15 @@ export default function EditBankAccountModal({
     }
   };
 
+  const availableBanks = [...new Set(availableRates.map(rate => rate.bankName))];
+  const availableAccountTypes = availableRates
+    .filter(rate => rate.bankName === bankName)
+    .map(rate => rate.accountType);
+
+  const currentRate = availableRates.find(
+    rate => rate.bankName === bankName && rate.accountType === accountType
+  )?.rate || 0;
+
   if (!account) return null;
 
   return (
@@ -99,84 +134,109 @@ export default function EditBankAccountModal({
           </h3>
         </div>
 
-        <form onSubmit={handleSubmit} method="dialog" className="px-6 py-4">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="balance"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Balance
-              </label>
-              <input
-                type="number"
-                id="balance"
-                value={balance}
-                onChange={(e) => setBalance(e.target.value)}
-                step="0.01"
-                min="0"
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-black text-base"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="yieldRate"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Yield Rate (%)
-              </label>
-              <input
-                type="number"
-                id="yieldRate"
-                value={yieldRate}
-                onChange={(e) => setYieldRate(e.target.value)}
-                step="0.1"
-                min="0"
-                max="100"
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-black text-base"
-                required
-              />
-            </div>
-          </div>
-
+        <form onSubmit={handleSubmit} className="p-6">
           {error && (
-            <div className="mt-4 rounded-md bg-red-50 p-3">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="mb-4 p-4 text-red-700 bg-red-100 rounded-md">
+              {error}
             </div>
           )}
 
-          <div className="mt-6 space-y-3 border-t border-gray-200 pt-4">
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="w-full inline-flex items-center justify-center rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="bank" className="block text-sm font-medium text-gray-700">
+                Bank
+              </label>
+              <select
+                id="bank"
+                value={bankName}
+                onChange={(e) => {
+                  setBankName(e.target.value);
+                  setAccountType(''); // Reset account type when bank changes
+                }}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                required
               >
-                Delete Account
-              </button>
+                <option value="">Select a bank</option>
+                {availableBanks.map(bank => (
+                  <option key={bank} value={bank}>{bank}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="flex justify-end">
+            <div>
+              <label htmlFor="accountType" className="block text-sm font-medium text-gray-700">
+                Account Type
+              </label>
+              <select
+                id="accountType"
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                required
+                disabled={!bankName}
+              >
+                <option value="">Select an account type</option>
+                {availableAccountTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            {currentRate > 0 && (
+              <div className="p-4 bg-gray-50 rounded-md">
+                <p className="text-sm text-gray-600">
+                  Current yield rate: <span className="font-semibold">{currentRate}%</span>
+                </p>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="balance" className="block text-sm font-medium text-gray-700">
+                Balance
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <input
+                  type="number"
+                  id="balance"
+                  value={balance}
+                  onChange={(e) => setBalance(e.target.value)}
+                  className="pl-7 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="0.00"
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-between">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="inline-flex justify-center rounded-md border border-transparent bg-red-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              disabled={isLoading}
+            >
+              Delete Account
+            </button>
+            <div className="flex space-x-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 disabled={isLoading}
               >
                 Cancel
               </button>
-            </div>
-
-            <div className="flex justify-end">
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center rounded-md bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 disabled={isLoading}
               >
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                Save Changes
               </button>
             </div>
           </div>

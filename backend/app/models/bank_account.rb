@@ -4,6 +4,8 @@ class BankAccount
 
   # Fields
   field :name, type: String
+  field :bank_name, type: String
+  field :account_type, type: String
   field :balance, type: Float, default: 0.0
   field :yield_rate, type: Float, default: 0.0
 
@@ -12,6 +14,8 @@ class BankAccount
 
   # Validations
   validates :name, presence: true, uniqueness: { scope: :user_id }
+  validates :bank_name, presence: true
+  validates :account_type, presence: true
   validates :balance, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :yield_rate, presence: true, numericality: { 
     greater_than_or_equal_to: 0,
@@ -21,6 +25,7 @@ class BankAccount
 
   # Callbacks
   before_validation :set_defaults
+  before_validation :set_yield_rate
 
   # Financial calculation methods
   def calculate_projection(days = 40)
@@ -59,5 +64,16 @@ class BankAccount
   def set_defaults
     self.balance ||= 0.0
     self.yield_rate ||= 0.0
+  end
+
+  def set_yield_rate
+    return unless bank_name.present? && account_type.present?
+    
+    rate = YieldRate.where(
+      bank_name: bank_name,
+      account_type: account_type
+    ).first
+
+    self.yield_rate = rate&.rate || 0.0
   end
 end

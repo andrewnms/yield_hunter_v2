@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 export interface User {
   email: string;
   lastLogin?: Date;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {
@@ -49,18 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AuthContext] Auth check response:', {
         status: response.status,
         ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        console.log('[AuthContext] Auth check successful:', data);
         setUser({
           email: data.email,
-          lastLogin: data.last_login ? new Date(data.last_login) : undefined
+          lastLogin: data.lastLogin ? new Date(data.lastLogin) : undefined,
+          isAdmin: data.email === 'apagu.hxi@gmail.com'
         });
       } else {
-        console.log('[AuthContext] Auth check failed');
         setUser(null);
       }
     } catch (error) {
@@ -101,7 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser({
         email: data.email,
-        lastLogin: data.last_login ? new Date(data.last_login) : undefined
+        lastLogin: data.last_login ? new Date(data.last_login) : undefined,
+        isAdmin: data.email === 'apagu.hxi@gmail.com'
       });
       
       // Check cookies after login
@@ -146,7 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser({
         email: data.email,
-        lastLogin: data.last_login ? new Date(data.last_login) : undefined
+        lastLogin: data.last_login ? new Date(data.last_login) : undefined,
+        isAdmin: data.email === 'apagu.hxi@gmail.com'
       });
       
       console.log('[AuthContext] Redirecting to dashboard');

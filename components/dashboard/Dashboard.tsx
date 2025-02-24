@@ -66,14 +66,26 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-50 w-full bg-[#EE2B47] py-8 px-4 md:px-8 shadow-lg border-b border-[#ee2b4730]">
+      <div className="sticky top-0 z-50 w-full bg-[#134B42] py-8 px-4 md:px-8 shadow-lg border-b border-[#134b4230]">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-4xl font-bold text-white tracking-tight font-display">Yield Hunter</h1>
+          <h1 className="text-5xl text-white tracking-normal font-display">
+            <span className="font-thin tracking-tight">Yield</span>
+            <span className="font-thin tracking-wide"> Hunter</span>
+          </h1>
           <div className="flex items-center space-x-4">
             <span className="text-white font-heading">{user?.email}</span>
+            {user.isAdmin && (
+              <a
+                href="/admin"
+                target="_blank"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 mr-4"
+              >
+                Admin Panel
+              </a>
+            )}
             <button
               onClick={() => logout()}
-              className="px-4 py-2 bg-white text-[#EE2B47] rounded-md hover:bg-gray-100 transition-colors font-heading"
+              className="px-4 py-2 bg-[#CA763A] text-white rounded-md hover:bg-[#e19c6c] transition-colors font-heading"
             >
               Logout
             </button>

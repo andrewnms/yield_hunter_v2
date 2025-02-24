@@ -11,21 +11,27 @@ export default {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         heading: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-orbitron)', 'system-ui', 'sans-serif'],
+        display: ['Yeager', 'var(--font-orbitron)', 'system-ui', 'sans-serif'],
       },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        primary: '#EE2B47',
-        secondary: '#FFFFE4',
+        primary: '#134B42',    // Deep Teal
+        secondary: '#CA763A',  // Amber Gold
+        'primary-light': '#1d6b5e', // Lighter Deep Teal
+        'secondary-light': '#e19c6c',  // Lighter Amber Gold
       },
       backgroundColor: {
-        'primary': '#EE2B47',
-        'secondary': '#FFFFE4',
+        'primary': '#134B42',    // Deep Teal
+        'secondary': '#CA763A',  // Amber Gold
+        'primary-light': '#1d6b5e', // Lighter Deep Teal
+        'secondary-light': '#e19c6c',  // Lighter Amber Gold
       },
       textColor: {
-        'primary': '#EE2B47',
-        'secondary': '#FFFFE4',
+        'primary': '#134B42',    // Deep Teal
+        'secondary': '#CA763A',  // Amber Gold
+        'primary-light': '#1d6b5e', // Lighter Deep Teal
+        'secondary-light': '#e19c6c',  // Lighter Amber Gold
       },
     },
   },

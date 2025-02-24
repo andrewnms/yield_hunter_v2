@@ -1,20 +1,18 @@
 import './globals.css'
-import { Inter, Montserrat, Orbitron } from 'next/font/google'
+import { Inter, Lato } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
 
 const inter = Inter({ 
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-body',
+  display: 'swap',
 })
 
-const montserrat = Montserrat({
+const lato = Lato({ 
+  weight: ['100', '300', '400', '700', '900'],
   subsets: ['latin'],
-  variable: '--font-montserrat',
-})
-
-const orbitron = Orbitron({
-  subsets: ['latin'],
-  variable: '--font-orbitron',
+  variable: '--font-display',
+  display: 'swap',
 })
 
 export const metadata = {
@@ -28,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${montserrat.variable} ${orbitron.variable} font-sans`}>
+    <html lang="en" className={`${inter.variable} ${lato.variable} font-sans`}>
+      <body>
         <AuthProvider>
           {children}
         </AuthProvider>

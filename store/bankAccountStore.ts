@@ -2,10 +2,13 @@ import { create } from 'zustand';
 
 export interface BankAccount {
   id: string;
-  _id: string;
   name: string;
+  bankName: string;
+  accountType: string;
   balance: number;
-  yieldRate: number | null;
+  yieldRate: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface BankAccountStore {
@@ -13,7 +16,7 @@ interface BankAccountStore {
   isLoading: boolean;
   error: string | null;
   fetchAccounts: () => Promise<void>;
-  addAccount: (account: Omit<BankAccount, 'id' | '_id'>) => Promise<void>;
+  addAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
   updateAccount: (id: string, updates: Partial<BankAccount>) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
 }
@@ -44,10 +47,13 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       // Map the snake_case from backend to camelCase for frontend
       const accounts = data.map((account: any) => ({
         id: account._id,
-        _id: account._id,
         name: account.name,
+        bankName: account.bank_name,
+        accountType: account.account_type,
         balance: Number(account.balance) || 0,
-        yieldRate: account.yield_rate !== null ? Number(account.yield_rate) : null
+        yieldRate: Number(account.yield_rate),
+        createdAt: account.created_at,
+        updatedAt: account.updated_at
       }));
       
       set({ accounts, isLoading: false });
@@ -62,6 +68,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       // Convert camelCase to snake_case for the backend
       const backendAccount = {
         name: account.name,
+        bank_name: account.bankName,
+        account_type: account.accountType,
         balance: account.balance,
         yield_rate: account.yieldRate
       };
@@ -84,10 +92,13 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       // Map the snake_case from backend to camelCase for frontend
       const newAccount = {
         id: data._id,
-        _id: data._id,
         name: data.name,
+        bankName: data.bank_name,
+        accountType: data.account_type,
         balance: Number(data.balance) || 0,
-        yieldRate: data.yield_rate !== null ? Number(data.yield_rate) : null
+        yieldRate: Number(data.yield_rate),
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       };
       
       const { accounts } = get();
@@ -103,6 +114,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       // Convert camelCase to snake_case for the backend
       const backendUpdates = {
         ...(updates.name && { name: updates.name }),
+        ...(updates.bankName && { bank_name: updates.bankName }),
+        ...(updates.accountType && { account_type: updates.accountType }),
         ...(updates.balance !== undefined && { balance: updates.balance }),
         ...(updates.yieldRate !== undefined && { yield_rate: updates.yieldRate })
       };
@@ -125,10 +138,13 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       // Map the snake_case from backend to camelCase for frontend
       const updatedAccount = {
         id: data._id,
-        _id: data._id,
         name: data.name,
+        bankName: data.bank_name,
+        accountType: data.account_type,
         balance: Number(data.balance) || 0,
-        yieldRate: data.yield_rate !== null ? Number(data.yield_rate) : null
+        yieldRate: Number(data.yield_rate),
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       };
 
       const { accounts } = get();

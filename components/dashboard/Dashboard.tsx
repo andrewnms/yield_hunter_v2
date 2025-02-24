@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import FinancialSummary from './FinancialSummary';
 import BankAccountList from './BankAccountList';
 import AddBankAccountModal from './AddBankAccountModal';
+import PromoAlerts from './PromoAlerts';
 import { useBankAccountStore } from '@/store/bankAccountStore';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -96,6 +97,9 @@ const Dashboard = () => {
       {/* Content */}
       <div className="p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
+          {/* Promo Alerts */}
+          <PromoAlerts />
+
           {/* Financial Summary Section */}
           <Suspense
             fallback={

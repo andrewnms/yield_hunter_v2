@@ -4,7 +4,6 @@ export interface BankAccount {
   id: string;
   name: string;
   bankName: string;
-  accountType: string;
   balance: number;
   yieldRate: number;
   createdAt: string;
@@ -16,8 +15,8 @@ interface BankAccountStore {
   isLoading: boolean;
   error: string | null;
   fetchAccounts: () => Promise<void>;
-  addAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
-  updateAccount: (id: string, updates: Partial<BankAccount>) => Promise<void>;
+  addAccount: (account: Omit<BankAccount, 'id' | 'yieldRate' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateAccount: (id: string, updates: Partial<Omit<BankAccount, 'id' | 'yieldRate' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
 }
 
@@ -31,11 +30,13 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
   fetchAccounts: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE_URL}/bank_accounts`, {
+      const response = await fetch(`${API_BASE_URL}/bank_accounts?_=${Date.now()}`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
         },
       });
       
@@ -49,9 +50,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
         id: account._id,
         name: account.name,
         bankName: account.bank_name,
-        accountType: account.account_type,
         balance: Number(account.balance) || 0,
-        yieldRate: Number(account.yield_rate),
+        yieldRate: Number(account.yield_rate) || 0,
         createdAt: account.created_at,
         updatedAt: account.updated_at
       }));
@@ -69,9 +69,7 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       const backendAccount = {
         name: account.name,
         bank_name: account.bankName,
-        account_type: account.accountType,
         balance: account.balance,
-        yield_rate: account.yieldRate
       };
 
       const response = await fetch(`${API_BASE_URL}/bank_accounts`, {
@@ -94,9 +92,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
         id: data._id,
         name: data.name,
         bankName: data.bank_name,
-        accountType: data.account_type,
         balance: Number(data.balance) || 0,
-        yieldRate: Number(data.yield_rate),
+        yieldRate: Number(data.yield_rate) || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
@@ -115,9 +112,7 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
       const backendUpdates = {
         ...(updates.name && { name: updates.name }),
         ...(updates.bankName && { bank_name: updates.bankName }),
-        ...(updates.accountType && { account_type: updates.accountType }),
         ...(updates.balance !== undefined && { balance: updates.balance }),
-        ...(updates.yieldRate !== undefined && { yield_rate: updates.yieldRate })
       };
 
       const response = await fetch(`${API_BASE_URL}/bank_accounts/${id}`, {
@@ -140,9 +135,8 @@ export const useBankAccountStore = create<BankAccountStore>((set, get) => ({
         id: data._id,
         name: data.name,
         bankName: data.bank_name,
-        accountType: data.account_type,
         balance: Number(data.balance) || 0,
-        yieldRate: Number(data.yield_rate),
+        yieldRate: Number(data.yield_rate) || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };

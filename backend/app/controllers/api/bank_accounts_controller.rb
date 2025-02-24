@@ -7,18 +7,17 @@ module Api
     def index
       Rails.logger.info "[BankAccounts] Loading accounts for user: #{current_user.email}"
       @bank_accounts = current_user.bank_accounts
-      render json: @bank_accounts.map { |account|
-        {
-          id: account.id.to_s,
-          name: account.name,
-          bankName: account.bank_name,
-          accountType: account.account_type,
-          balance: account.balance,
-          yieldRate: account.yield_rate,
-          createdAt: account.created_at,
-          updatedAt: account.updated_at
-        }
-      }
+      
+      # Sync yield rates before returning accounts
+      @bank_accounts.each do |account|
+        matching_rate = YieldRate.where(bank_name: account.bank_name).first
+        if matching_rate && account.yield_rate != matching_rate.rate
+          account.yield_rate = matching_rate.rate
+          account.save!
+        end
+      end
+      
+      render json: @bank_accounts
     rescue => e
       Rails.logger.error "[BankAccounts] Error loading accounts: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
@@ -27,33 +26,19 @@ module Api
 
     # GET /api/bank_accounts/:id
     def show
-      render json: {
-        id: @bank_account.id.to_s,
-        name: @bank_account.name,
-        bankName: @bank_account.bank_name,
-        accountType: @bank_account.account_type,
-        balance: @bank_account.balance,
-        yieldRate: @bank_account.yield_rate,
-        createdAt: @bank_account.created_at,
-        updatedAt: @bank_account.updated_at
-      }
+      render json: @bank_account
     end
 
     # POST /api/bank_accounts
     def create
       @bank_account = current_user.bank_accounts.build(bank_account_params)
+      
+      # Find the matching yield rate from admin-defined rates
+      matching_rate = YieldRate.where(bank_name: @bank_account.bank_name).first
+      @bank_account.yield_rate = matching_rate&.rate || 0.0
 
       if @bank_account.save
-        render json: {
-          id: @bank_account.id.to_s,
-          name: @bank_account.name,
-          bankName: @bank_account.bank_name,
-          accountType: @bank_account.account_type,
-          balance: @bank_account.balance,
-          yieldRate: @bank_account.yield_rate,
-          createdAt: @bank_account.created_at,
-          updatedAt: @bank_account.updated_at
-        }, status: :created
+        render json: @bank_account, status: :created
       else
         render json: { errors: @bank_account.errors.full_messages }, status: :unprocessable_entity
       end
@@ -61,17 +46,12 @@ module Api
 
     # PATCH/PUT /api/bank_accounts/:id
     def update
+      # Find the matching yield rate from admin-defined rates
+      matching_rate = YieldRate.where(bank_name: @bank_account.bank_name).first
+      @bank_account.yield_rate = matching_rate&.rate || 0.0
+
       if @bank_account.update(bank_account_params)
-        render json: {
-          id: @bank_account.id.to_s,
-          name: @bank_account.name,
-          bankName: @bank_account.bank_name,
-          accountType: @bank_account.account_type,
-          balance: @bank_account.balance,
-          yieldRate: @bank_account.yield_rate,
-          createdAt: @bank_account.created_at,
-          updatedAt: @bank_account.updated_at
-        }
+        render json: @bank_account
       else
         render json: { errors: @bank_account.errors.full_messages }, status: :unprocessable_entity
       end
@@ -105,7 +85,7 @@ module Api
     end
 
     def bank_account_params
-      params.require(:bank_account).permit(:name, :balance, :bank_name, :account_type, :yield_rate)
+      params.require(:bank_account).permit(:name, :balance, :bank_name)
     end
   end
 end

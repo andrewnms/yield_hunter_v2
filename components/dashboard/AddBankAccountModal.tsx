@@ -41,30 +41,27 @@ export default function AddBankAccountModal({ isOpen, onClose }: Props) {
   const { addAccount, isLoading, error } = useBankAccountStore();
   const [selectedBank, setSelectedBank] = useState(BANK_OPTIONS[0]);
   const [balance, setBalance] = useState('');
-  const [yieldRate, setYieldRate] = useState('4.50');
   const [submitError, setSubmitError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError('');
 
-    const parsedYieldRate = parseFloat(yieldRate);
-    if (parsedYieldRate <= 0) {
-      setSubmitError('Yield rate must be greater than 0%');
+    if (!balance || parseFloat(balance) <= 0) {
+      setSubmitError('Please enter a valid balance');
       return;
     }
 
     try {
       await addAccount({
         name: selectedBank.name,
+        bankName: selectedBank.name,
         balance: parseFloat(balance),
-        yieldRate: parsedYieldRate
       });
       
       // Reset form and close modal on success
       setSelectedBank(BANK_OPTIONS[0]);
       setBalance('');
-      setYieldRate('4.50');
       onClose();
     } catch (error) {
       setSubmitError((error as Error).message);
@@ -105,135 +102,109 @@ export default function AddBankAccountModal({ isOpen, onClose }: Props) {
                   Add New Bank Account
                 </Dialog.Title>
 
-                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                  <div>
-                    <Listbox value={selectedBank} onChange={setSelectedBank}>
-                      <div className="relative mt-1">
-                        <Listbox.Label className="block text-sm font-medium text-gray-700">
-                          Select Bank
-                        </Listbox.Label>
-                        <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-3 pl-4 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300 text-base text-black">
-                          <span className="block truncate">{selectedBank.name}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                            <ChevronUpDownIcon
-                              className="h-5 w-5 text-gray-400"
-                              aria-hidden="true"
-                            />
-                          </span>
-                        </Listbox.Button>
-                        <Transition
-                          as={Fragment}
-                          leave="transition ease-in duration-100"
-                          leaveFrom="opacity-100"
-                          leaveTo="opacity-0"
-                        >
-                          <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {Object.entries(
-                              BANK_OPTIONS.reduce((acc, bank) => {
-                                if (!acc[bank.category]) {
-                                  acc[bank.category] = [];
-                                }
-                                acc[bank.category].push(bank);
-                                return acc;
-                              }, {} as Record<string, typeof BANK_OPTIONS>)
-                            ).map(([category, banks]) => (
-                              <div key={category}>
-                                <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
-                                  {category}
-                                </div>
-                                {banks.map((bank) => (
-                                  <Listbox.Option
-                                    key={bank.id}
-                                    className={({ active }) =>
-                                      `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                        active ? 'bg-blue-100 text-blue-900' : 'text-black'
-                                      }`
-                                    }
-                                    value={bank}
-                                  >
-                                    {({ selected }) => (
-                                      <>
-                                        <span
-                                          className={`block truncate ${
-                                            selected ? 'font-medium' : 'font-normal'
-                                          }`}
-                                        >
-                                          {bank.name}
-                                        </span>
-                                        {selected ? (
-                                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                          </span>
-                                        ) : null}
-                                      </>
-                                    )}
-                                  </Listbox.Option>
-                                ))}
-                              </div>
-                            ))}
-                          </Listbox.Options>
-                        </Transition>
-                      </div>
-                    </Listbox>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="balance"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Initial Balance
-                    </label>
-                    <input
-                      type="number"
-                      id="balance"
-                      value={balance}
-                      onChange={(e) => setBalance(e.target.value)}
-                      step="0.01"
-                      min="0"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black text-base py-3 px-4"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="yieldRate"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Yield Rate (%)
-                    </label>
-                    <input
-                      type="number"
-                      id="yieldRate"
-                      value={yieldRate}
-                      onChange={(e) => setYieldRate(e.target.value)}
-                      step="0.01"
-                      min="0.01"
-                      placeholder="Enter yield rate"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black text-base py-3 px-4"
-                      required
-                    />
-                  </div>
-
-                  {(error || submitError) && (
-                    <div className="p-2 text-sm text-red-600 bg-red-50 rounded">
-                      {error || submitError}
+                <form onSubmit={handleSubmit} className="mt-4">
+                  {submitError && (
+                    <div className="mb-4 p-4 text-sm text-red-800 rounded-lg bg-red-50">
+                      {submitError}
                     </div>
                   )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Select Bank
+                      </label>
+                      <Listbox value={selectedBank} onChange={setSelectedBank}>
+                        <div className="relative mt-1">
+                          <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
+                            <span className="block truncate">{selectedBank.name}</span>
+                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                              <ChevronUpDownIcon
+                                className="h-5 w-5 text-gray-400"
+                                aria-hidden="true"
+                              />
+                            </span>
+                          </Listbox.Button>
+                          <Transition
+                            as={Fragment}
+                            leave="transition ease-in duration-100"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                          >
+                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
+                              {BANK_OPTIONS.map((bank, bankIdx) => (
+                                <Listbox.Option
+                                  key={bank.id}
+                                  className={({ active }) =>
+                                    `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                      active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                    }`
+                                  }
+                                  value={bank}
+                                >
+                                  {({ selected }) => (
+                                    <>
+                                      <span
+                                        className={`block truncate ${
+                                          selected ? 'font-medium' : 'font-normal'
+                                        }`}
+                                      >
+                                        {bank.name}
+                                      </span>
+                                      {selected ? (
+                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600">
+                                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                        </span>
+                                      ) : null}
+                                    </>
+                                  )}
+                                </Listbox.Option>
+                              ))}
+                            </Listbox.Options>
+                          </Transition>
+                        </div>
+                      </Listbox>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="balance"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Initial Balance
+                      </label>
+                      <div className="relative mt-1 rounded-md shadow-sm">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          name="balance"
+                          id="balance"
+                          className="block w-full rounded-md border-0 py-1.5 pl-7 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          placeholder="0.00"
+                          value={balance}
+                          onChange={(e) => setBalance(e.target.value)}
+                          required
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="mt-6 flex justify-end space-x-3">
                     <button
                       type="button"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                       onClick={onClose}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? 'Adding...' : 'Add Account'}
                     </button>

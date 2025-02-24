@@ -12,6 +12,13 @@ export default function BankAccountList() {
 
   useEffect(() => {
     fetchAccounts();
+
+    // Refresh accounts every 15 seconds to get updated yield rates
+    const intervalId = setInterval(() => {
+      fetchAccounts();
+    }, 15000);
+
+    return () => clearInterval(intervalId);
   }, [fetchAccounts]);
 
   const handleEdit = (account: BankAccount) => {
@@ -22,12 +29,14 @@ export default function BankAccountList() {
   const handleSave = async (updates: Partial<BankAccount>) => {
     if (!selectedAccount) return;
     await updateAccount(selectedAccount.id, updates);
+    await fetchAccounts(); // Refresh to get updated yield rate
     setIsEditModalOpen(false);
     setSelectedAccount(null);
   };
 
   const handleDelete = async (id: string) => {
     await deleteAccount(id);
+    await fetchAccounts(); // Refresh list after deletion
     setIsEditModalOpen(false);
     setSelectedAccount(null);
   };
@@ -67,7 +76,15 @@ export default function BankAccountList() {
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-xl font-semibold mb-4 text-black">Linked Bank Accounts</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-black">Linked Bank Accounts</h2>
+          <button
+            onClick={() => fetchAccounts()}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Refresh
+          </button>
+        </div>
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={`skeleton-${i}`} className="h-24 bg-gray-50 rounded-lg animate-pulse" />
@@ -80,7 +97,15 @@ export default function BankAccountList() {
   if (error) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-xl font-semibold mb-4 text-black">Linked Bank Accounts</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-black">Linked Bank Accounts</h2>
+          <button
+            onClick={() => fetchAccounts()}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Refresh
+          </button>
+        </div>
         <div className="p-4 bg-red-50 text-red-600 rounded-lg">
           Error loading accounts: {error}
         </div>
@@ -90,7 +115,15 @@ export default function BankAccountList() {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4 text-black">Linked Bank Accounts</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-black">Linked Bank Accounts</h2>
+        <button
+          onClick={() => fetchAccounts()}
+          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Refresh
+        </button>
+      </div>
       
       <motion.div
         variants={listVariants}
@@ -101,7 +134,7 @@ export default function BankAccountList() {
         <AnimatePresence mode="popLayout">
           {accounts.map((account) => (
             <motion.div
-              key={account._id}
+              key={account.id}
               variants={itemVariants}
               initial="hidden"
               animate="show"
@@ -122,7 +155,6 @@ export default function BankAccountList() {
               </div>
               <div className="flex flex-wrap gap-2 items-center">
                 <motion.button
-                  key={`edit-${account._id}`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleEdit(account)}
@@ -131,14 +163,12 @@ export default function BankAccountList() {
                   Edit
                 </motion.button>
                 <button
-                  key={`transfer-${account._id}`}
                   onClick={() => {}} // Transfer functionality to be implemented
                   className="px-3 py-1.5 text-sm font-medium text-black bg-blue-50 rounded hover:bg-blue-100"
                 >
                   Transfer
                 </button>
                 <button
-                  key={`open-${account._id}`}
                   onClick={() => {}} // Open bank functionality to be implemented
                   className="px-3 py-1.5 text-sm font-medium text-black bg-gray-100 rounded hover:bg-gray-200"
                 >

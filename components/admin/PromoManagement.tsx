@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePromoStore } from '@/store/promoStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BANK_CATEGORIES } from '@/constants/banks';
 
 interface PromoFormData {
   title: string;
@@ -134,14 +135,24 @@ export default function PromoManagement() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Bank</label>
-                <input
-                  type="text"
+                <select
                   name="bank"
                   value={formData.bank}
                   onChange={handleInputChange}
                   required
                   className="w-full p-2 border rounded"
-                />
+                >
+                  <option value="">Select a bank</option>
+                  {BANK_CATEGORIES.map((category) => (
+                    <optgroup key={category.name} label={category.name}>
+                      {category.banks.map((bank) => (
+                        <option key={bank} value={bank}>
+                          {bank}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Type</label>

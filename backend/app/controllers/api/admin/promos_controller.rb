@@ -1,7 +1,6 @@
 module Api
   module Admin
-    class PromosController < ApplicationController
-      before_action :ensure_admin!
+    class PromosController < AdminController
       before_action :set_promo, only: [:show, :update, :destroy]
       rescue_from Mongoid::Errors::Validations, with: :handle_validation_error
       rescue_from Mongoid::Errors::DocumentNotFound, with: :handle_not_found
@@ -112,13 +111,6 @@ module Api
       def handle_not_found(error)
         Rails.logger.error "[Admin::Promos] Not found: #{error.message}"
         render json: { error: 'Promo not found' }, status: :not_found
-      end
-
-      def ensure_admin!
-        unless current_user&.admin?
-          Rails.logger.warn "[Admin::Promos] Non-admin access attempt: #{current_user&.email}"
-          render json: { error: 'Unauthorized - Admin access required' }, status: :unauthorized
-        end
       end
     end
   end

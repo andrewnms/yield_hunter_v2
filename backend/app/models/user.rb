@@ -7,6 +7,7 @@ class User
   field :email, type: String
   field :password_digest, type: String
   field :last_login, type: Time
+  field :admin, type: Boolean, default: false
 
   # Relations
   has_many :bank_accounts

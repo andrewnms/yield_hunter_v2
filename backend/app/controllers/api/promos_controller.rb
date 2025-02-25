@@ -7,15 +7,19 @@ module Api
       @promos = Promo.current.order(created_at: :desc)
       
       render json: @promos.map { |promo|
-        promo.as_json.merge({
+        {
           id: promo.id.to_s,
-          validUntil: promo.valid_until.iso8601,
+          title: promo.title,
+          description: promo.description,
+          bank: promo.bank,
           promoType: promo.promo_type,
+          validUntil: promo.valid_until.iso8601,
           ctaText: promo.cta_text,
           ctaUrl: promo.cta_url,
+          active: promo.active,
           createdAt: promo.created_at.iso8601,
           updatedAt: promo.updated_at.iso8601
-        })
+        }
       }
     rescue StandardError => e
       Rails.logger.error "[Promos] Error fetching promos: #{e.message}"

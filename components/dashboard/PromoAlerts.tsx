@@ -89,10 +89,12 @@ export default function PromoAlerts() {
           </p>
         </div>
 
-        {(currentPromo.ctaText && currentPromo.ctaUrl) && (
+        {(currentPromo.ctaText?.trim() && currentPromo.ctaUrl?.trim()) && (
           <div>
             <a
               href={currentPromo.ctaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#CA763A] hover:bg-[#B56833] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CA763A]"
             >
               {currentPromo.ctaText}

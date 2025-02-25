@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { usePromoStore, type Promo } from '@/store/promoStore';
-import { Dialog } from '@headlessui/react';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import PromoManager from './PromoManager';
+import { BANK_CATEGORIES } from '@/constants/banks';
 
 interface PromoFormData {
   title: string;
@@ -25,38 +25,16 @@ const initialFormData: PromoFormData = {
   ctaUrl: '',
 };
 
-export default function PromoManager() {
+export default function PromoManagerPage() {
   const { promos, loading, error, fetchPromos, createPromo, updatePromo, deletePromo } = usePromoStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState<PromoFormData>(initialFormData);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPromos();
   }, [fetchPromos]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingId) {
-      await updatePromo(editingId, formData);
-    } else {
-      await createPromo(formData);
-    }
-    setIsOpen(false);
-    setFormData(initialFormData);
-    setEditingId(null);
-  };
-
   const handleEdit = (promo: Promo) => {
-    setFormData({
-      title: promo.title,
-      description: promo.description,
-      bank: promo.bank,
-      promoType: promo.promoType,
-      validUntil: new Date(promo.validUntil).toISOString().split('T')[0],
-      ctaText: promo.ctaText,
-      ctaUrl: promo.ctaUrl,
-    });
     setEditingId(promo.id);
     setIsOpen(true);
   };
@@ -80,8 +58,6 @@ export default function PromoManager() {
           <button
             type="button"
             onClick={() => {
-              setFormData(initialFormData);
-              setEditingId(null);
               setIsOpen(true);
             }}
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-[#CA763A] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#B56833] focus:outline-none focus:ring-2 focus:ring-[#CA763A] focus:ring-offset-2 sm:w-auto"
@@ -148,132 +124,12 @@ export default function PromoManager() {
         </div>
       </div>
 
-      <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-2xl rounded-lg bg-white p-6">
-            <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
-              {editingId ? 'Edit Promo' : 'Create New Promo'}
-            </Dialog.Title>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-900 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-900 mb-2">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="bank" className="block text-sm font-medium text-gray-900 mb-2">
-                  Bank
-                </label>
-                <input
-                  type="text"
-                  id="bank"
-                  value={formData.bank}
-                  onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="promoType" className="block text-sm font-medium text-gray-900 mb-2">
-                  Type
-                </label>
-                <select
-                  id="promoType"
-                  value={formData.promoType}
-                  onChange={(e) => setFormData({ ...formData, promoType: e.target.value as 'info' | 'success' | 'warning' })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                >
-                  <option value="info">Info</option>
-                  <option value="success">Success</option>
-                  <option value="warning">Warning</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="validUntil" className="block text-sm font-medium text-gray-900 mb-2">
-                  Valid Until
-                </label>
-                <input
-                  type="date"
-                  id="validUntil"
-                  value={formData.validUntil}
-                  onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="ctaText" className="block text-sm font-medium text-gray-900 mb-2">
-                  Call to Action Text (Optional)
-                </label>
-                <input
-                  type="text"
-                  id="ctaText"
-                  value={formData.ctaText}
-                  onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="ctaUrl" className="block text-sm font-medium text-gray-900 mb-2">
-                  Call to Action URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  id="ctaUrl"
-                  value={formData.ctaUrl}
-                  onChange={(e) => setFormData({ ...formData, ctaUrl: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#CA763A] focus:ring-[#CA763A] text-base py-2 px-3 text-gray-900"
-                />
-              </div>
-
-              <div className="mt-8 sm:mt-8 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-                <button
-                  type="submit"
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-[#CA763A] px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-[#B56833] focus:outline-none focus:ring-2 focus:ring-[#CA763A] focus:ring-offset-2 sm:col-start-2 sm:text-sm"
-                >
-                  {editingId ? 'Save Changes' : 'Create Promo'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#CA763A] focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
+      <PromoManager
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        editingId={editingId}
+        setEditingId={setEditingId}
+      />
     </div>
   );
 }

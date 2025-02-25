@@ -16,12 +16,20 @@ interface PromoFormData {
   active: boolean;
 }
 
+// Helper function to format date to ISO8601 with end of day time
+const formatDateToISO = (dateString: string): string => {
+  const date = new Date(dateString);
+  // Set time to end of day (23:59:59.999) in local timezone
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+};
+
 const initialFormData: PromoFormData = {
   title: '',
   description: '',
   bank: '',
   promoType: 'info',
-  validUntil: new Date().toISOString().split('T')[0],
+  validUntil: new Date().toISOString().split('T')[0], // Just the date part for the input
   ctaText: '',
   ctaUrl: '',
   active: true,
@@ -48,10 +56,16 @@ export default function PromoManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Create a copy of the form data with properly formatted date
+      const submissionData = {
+        ...formData,
+        validUntil: formatDateToISO(formData.validUntil)
+      };
+
       if (isEditing) {
-        await updatePromo(isEditing, formData);
+        await updatePromo(isEditing, submissionData);
       } else {
-        await createPromo(formData);
+        await createPromo(submissionData);
       }
       setFormData(initialFormData);
       setIsEditing(null);
@@ -68,7 +82,7 @@ export default function PromoManagement() {
       description: promo.description,
       bank: promo.bank,
       promoType: promo.promoType,
-      validUntil: new Date(promo.validUntil).toISOString().split('T')[0],
+      validUntil: new Date(promo.validUntil).toISOString().split('T')[0], // Convert to date input format
       ctaText: promo.ctaText || '',
       ctaUrl: promo.ctaUrl || '',
       active: promo.active,

@@ -27,6 +27,15 @@ interface PromoState {
   deletePromo: (id: string) => Promise<void>;
 }
 
+// Get auth token from localStorage
+const getAuthToken = () => localStorage.getItem('authToken');
+
+// Configure axios with auth headers
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${getAuthToken()}`
+});
+
 export const createPromo = async (promoData: CreatePromoInput): Promise<Promo> => {
   try {
     console.log('Creating promo with data:', promoData);
@@ -64,11 +73,7 @@ export const createPromo = async (promoData: CreatePromoInput): Promise<Promo> =
     const response = await axios.post<Promo>(
       '/api/admin/promos',
       payload,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { headers: getAuthHeaders() }
     );
 
     if (!response.data) {
@@ -95,43 +100,48 @@ export const usePromoStore = create<PromoState>((set) => ({
   fetchPromos: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get<Promo[]>('/api/admin/promos');
+      // Use the public endpoint for fetching promos
+      const response = await axios.get<Promo[]>('/api/promos');
       set({ promos: response.data, loading: false });
     } catch (error) {
       console.error('Error fetching promos:', error);
-      set({ error: 'Failed to fetch promos', loading: false });
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch promos',
+        loading: false 
+      });
     }
   },
 
   createPromo: async (promo: CreatePromoInput) => {
     set({ loading: true, error: null });
     try {
-      const createdPromo = await createPromo(promo);
-      set((state) => ({
-        promos: [createdPromo, ...state.promos],
-        loading: false
-      }));
+      await createPromo(promo);
+      // Refresh the promos list after creating
+      const response = await axios.get<Promo[]>('/api/promos');
+      set({ promos: response.data, loading: false });
     } catch (error) {
       console.error('Error creating promo:', error);
-      set({ 
+      set({
         error: error instanceof Error ? error.message : 'Failed to create promo',
-        loading: false 
+        loading: false
       });
-      throw error; // Re-throw to handle in the component
+      throw error;
     }
   },
 
   updatePromo: async (id: string, promo: Partial<Promo>) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.put<Promo>(`/api/admin/promos/${id}`, { promo });
-      set((state) => ({
-        promos: state.promos.map((p) => (p.id === id ? response.data : p)),
-        loading: false
-      }));
+      await axios.put(`/api/admin/promos/${id}`, { promo }, { headers: getAuthHeaders() });
+      // Refresh the promos list after updating
+      const response = await axios.get<Promo[]>('/api/promos');
+      set({ promos: response.data, loading: false });
     } catch (error) {
       console.error('Error updating promo:', error);
-      set({ error: 'Failed to update promo', loading: false });
+      set({
+        error: error instanceof Error ? error.message : 'Failed to update promo',
+        loading: false
+      });
       throw error;
     }
   },
@@ -139,14 +149,16 @@ export const usePromoStore = create<PromoState>((set) => ({
   deletePromo: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      await axios.delete(`/api/admin/promos/${id}`);
-      set((state) => ({
-        promos: state.promos.filter((p) => p.id !== id),
-        loading: false
-      }));
+      await axios.delete(`/api/admin/promos/${id}`, { headers: getAuthHeaders() });
+      // Refresh the promos list after deleting
+      const response = await axios.get<Promo[]>('/api/promos');
+      set({ promos: response.data, loading: false });
     } catch (error) {
       console.error('Error deleting promo:', error);
-      set({ error: 'Failed to delete promo', loading: false });
+      set({
+        error: error instanceof Error ? error.message : 'Failed to delete promo',
+        loading: false
+      });
       throw error;
     }
   }
